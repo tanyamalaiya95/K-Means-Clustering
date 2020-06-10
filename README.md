@@ -1,4 +1,4 @@
-# K-Means-Clustering : Executive Summary
+# K-Means-Clustering : European Employment Dataset
 ## Data
 The data being used for clustering is the European Employment Dataset, which consists of the percentage employed in 10 different industries in 26 European countries during 1979. 
 ## Goal and Background
