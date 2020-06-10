@@ -1,0 +1,107 @@
+---
+title: "HW3 Part 1"
+author: "Tanya Malaiya"
+date: "4/19/2020"
+output:
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(13480226)
+```
+
+#K-Means Clustering
+
+```{r}
+#Loading libraries
+require(factoextra)
+require(fpc)
+require(gridExtra)
+
+#Loading data
+data_euro <- read.delim('europeanJobs.txt', sep = "\t")
+row.names(data_euro) <- data_euro$Country
+data_euro <- data_euro[,-1]
+
+distance <- get_dist(data_euro)
+fviz_dist(distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
+
+# K-Means Cluster Analysis
+k2 <- kmeans(data_euro, 2, nstart = 100) 
+table(k2$cluster)
+fviz_cluster(k2, data = data_euro)
+round(k2$centers,2)
+
+k3 <- kmeans(data_euro, 3, nstart = 100) 
+table(k3$cluster)
+fviz_cluster(k3, data = data_euro)
+round(k3$centers,2)
+
+k4 <- kmeans(data_euro, 4, nstart = 100) 
+table(k4$cluster)
+fviz_cluster(k4, data = data_euro)
+round(k4$centers,2)
+
+k5 <- kmeans(data_euro, 5, nstart = 100) 
+table(k5$cluster)
+fviz_cluster(k5, data = data_euro)
+round(k5$centers,2)
+```
+
+```{r}
+plotcluster(data_euro, k3$cluster)
+```
+
+
+## Determining the optimum number of clusters
+
+```{r}
+# Determine number of clusters
+wss <- (nrow(data_euro)-1)*sum(apply(data_euro,2,var))
+for (i in 2:15) wss[i] <- sum(kmeans(data_euro,
+                                     centers=i,
+                                     nstart = 100)$withinss)
+plot(1:15, wss, type="b", xlab="Number of Clusters",ylab="Within groups sum of squares")
+
+prediction.strength(data_euro, Gmin=2, Gmax=15, M=10, cutoff=0.8, count = T)
+
+d = dist(data_euro, method = "euclidean")
+result = matrix(nrow = 11, ncol = 3)
+for (i in 2:12){
+  cluster_result = kmeans(data_euro, i, nstart = 10)
+  clusterstat=cluster.stats(d, cluster_result$cluster)
+  result[i-1,1]=i
+  result[i-1,2]=clusterstat$avg.silwidth
+  result[i-1,3]=clusterstat$dunn   
+}
+plot(result[,c(1,2)], type="l", ylab = 'silhouette width', xlab = 'number of clusters')
+abline(h=min(result[,2]), col="red", lty=2)
+
+plot(result[,c(1,3)], type="l", ylab = 'dunn index', xlab = 'number of clusters')
+abline(h=max(result[,3]), col="red", lty=2)
+```
+
+#Hierarchial Clustering
+
+```{r, warning = F}
+#Calculate the distance matrix
+euro.dist=dist(data_euro)
+
+#Obtain clusters using the Wards method
+euro.hclust=hclust(euro.dist, method="ward.D2")
+plot(euro.hclust)
+
+#Cut dendrogram at the 3 clusters level and obtain cluster membership
+euro.3clust = cutree(euro.hclust,k=3)
+
+#See exactly which item are in third group
+data_euro[euro.3clust==3,]
+#get cluster means for raw data
+#Centroid Plot against 1st 2 discriminant functions
+
+#plotcluster(ZooFood, fit$cluster)
+plotcluster(data_euro, euro.3clust)
+```
+
